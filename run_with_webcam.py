@@ -20,7 +20,8 @@ torch.backends.cudnn.enabled = True
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(device)
 
-webcam = cv2.VideoCapture(0)
+webcam = cv2.VideoCapture("donaldo4.mp4")
+# webcam = cv2.VideoCapture(0)
 webcam.set(cv2.CAP_PROP_FRAME_WIDTH, 960)
 webcam.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 webcam.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
@@ -84,7 +85,7 @@ def main():
 
             for ep in [left_eye, right_eye]:
                 for (x, y) in ep.landmarks[16:33]:
-                    color = (0, 255, 0)
+                    color = (255, 0, 0)
                     if ep.eye_sample.is_left:
                         color = (255, 0, 0)
                     cv2.circle(orig_frame,
@@ -96,7 +97,9 @@ def main():
                 util.gaze.draw_gaze(orig_frame, ep.landmarks[-2], gaze, length=60.0, thickness=2)
 
         cv2.imshow("Webcam", orig_frame)
-        cv2.waitKey(1)
+        if cv2.waitKey(1) == 27:
+            break
+    cv2.destroyAllWindows()
 
 
 def detect_landmarks(face, frame, scale_x=0, scale_y=0):
@@ -160,9 +163,9 @@ def segment_eyes(frame, landmarks, ow=160, oh=96):
 
         if is_left:
             eye_image = np.fliplr(eye_image)
-            cv2.imshow('left eye image', eye_image)
-        else:
-            cv2.imshow('right eye image', eye_image)
+        #     cv2.imshow('left eye image', eye_image)
+        # else:
+        #     cv2.imshow('right eye image', eye_image)
         eyes.append(EyeSample(orig_img=frame.copy(),
                               img=eye_image,
                               transform_inv=inv_transform_mat,
@@ -205,6 +208,7 @@ def run_eyenet(eyes: List[EyeSample], ow=160, oh=96) -> List[EyePrediction]:
             landmarks = np.asarray(np.matmul(landmarks, eye.transform_inv.T))[:, :2]
             assert landmarks.shape == (34, 2)
             result.append(EyePrediction(eye_sample=eye, landmarks=landmarks, gaze=gaze))
+
     return result
 
 
